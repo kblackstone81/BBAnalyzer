@@ -13,7 +13,7 @@ def chopEndOfString(string, ending):
 	# conn - database connection
 	# teamString - prefix for the team requested (Home or Away)
 def writeTeamInfo( conn, outputFile, teamString ):
-	
+
 	# define local team variables for the queury
 	teamListing = (teamString + "_Player_Listing")
 	teamPlayerTypes = teamString + "_player_types"
@@ -45,27 +45,29 @@ def writeTeamInfo( conn, outputFile, teamString ):
 
 	return
 
-# Starting point
-if len(sys.argv) > 1:
-    file = sys.argv[1]
-else:
-    file = min(glob.iglob('*.db'), key=os.path.getctime)
-print(file)
+if __name__ == '__main__':
 
-conn = sqlite3.connect(file)
-print "Opened database successfully";
+    # Starting point
+    if len(sys.argv) > 1:
+        file = sys.argv[1]
+    else:
+        file = min(glob.iglob('*.db'), key=os.path.getctime)
+    print(file)
 
-conn.execute("ATTACH DATABASE 'WorldCup.db' AS MainDB")
-print "Attached MainDB";
+    conn = sqlite3.connect(file)
+    print "Opened database successfully";
 
-outputFileName = chopEndOfString(file, ".db") + "_Summary.txt"
-outputFile = open(outputFileName, "w+", 0)
-writeTeamInfo(conn, outputFile, "Home")
-outputFile.write('\n')
-writeTeamInfo(conn, outputFile, "Away")
-outputFile.write('\n')
-print "Operation done successfully";
+    conn.execute("ATTACH DATABASE 'WorldCup.db' AS MainDB")
+    print "Attached MainDB";
 
-outputFile.close();
+    outputFileName = chopEndOfString(file, ".db") + "_Summary.txt"
+    outputFile = open(outputFileName, "w+", 0)
+    writeTeamInfo(conn, outputFile, "Home")
+    outputFile.write('\n')
+    writeTeamInfo(conn, outputFile, "Away")
+    outputFile.write('\n')
+    print "Operation done successfully";
 
-conn.close;
+    outputFile.close();
+
+    conn.close;
