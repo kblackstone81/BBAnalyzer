@@ -9,12 +9,8 @@ import sqlite3
     # teamString - prefix for the team requested (Home or Away)
 def writeTeamInfo( conn, outputFile, teamString ):
 
-    # define local team variables for the queury
-    teamListing = (teamString + "_Player_Listing")
-    teamPlayerTypes = teamString + "_player_types"
-    teamPlayerTypeSkills = teamString + "_player_Type_Skills"
-    teamPlayerSkills = teamString + "_Player_Skills"
-    outputFile.write(teamListing + '\n');
+    #give a title for the team
+    outputFile.write("{0} Team\n".format(teamString))
 
     # run the query to get the team data from the db
     sql = ('SELECT pl.ID, '
