@@ -52,7 +52,7 @@ if __name__ == '__main__':
         file = os.path.basename(sys.argv[1])
 
     else:
-        file = min(glob.iglob('*.db'), key=os.path.getctime)
+        file = max(glob.iglob('*.db'), key=os.path.getctime)
     print("Input: {0}".format(file))
 
     conn = sqlite3.connect(file)
