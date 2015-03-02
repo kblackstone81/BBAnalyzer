@@ -162,3 +162,8 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+
+#############
+## Output Files
+#############
+*_Summary.txt
