@@ -2,20 +2,10 @@ import glob
 import os
 import sys
 import sqlite3
+import json
 
 
-# Get the information for the requested team
-# conn - database connection
-# teamString - prefix for the team requested (Home or Away)
-def writeTeamInfo(conn, outputFile, teamString):
-    ''' Outputs team information to the file
-    '''
-
-    # give a title for the team
-    outputFile.write("{0} Team\n".format(teamString))
-
-    # run the query to get the team data from the db
-    sql = ('SELECT pl.ID, '
+sql_fmt = ('SELECT pl.ID AS ID, '
            'pl.strName AS Name, '
            't.DATA_CONSTANT AS Type, '
            'ROUND(pl.Characteristics_fMovementAllowance * 0.12, 0) AS MV, '
@@ -36,10 +26,56 @@ def writeTeamInfo(conn, outputFile, teamString):
            'LEFT OUTER JOIN MainDB.Skill_Listing mainsl '
            'ON ps.idSkill_Listing = mainsl.ID '
            'GROUP BY pl.ID'
-           ).format(teamString)
+           )
 
-    rows = [', '.join([str(col) for col in row]) for row in conn.execute(sql)]
-    outputFile.write('\n'.join(rows) + '\n')
+col_headers = [
+    'ID',
+    'Name',
+    'Position',
+    'MV',
+    'ST',
+    'AG',
+    'AV',
+    'Level',
+    'Exp',
+    'Value',
+    'Default Skills',
+    'Level Skills'
+]
+
+
+def fetchData(conn):
+    data = {}
+    home = "Home"
+    away = "Away"
+    teamPosition_fmt = "{0} Team"
+    data[teamPosition_fmt.format(home)] = fetchTeamData(conn, home)
+    data[teamPosition_fmt.format(away)] = fetchTeamData(conn, away)
+    return data
+
+
+def fetchTeamData(conn, teamStr):
+    sql = sql_fmt.format(teamStr)
+    cursor = conn.execute(sql)
+    rows = cursor.fetchall()
+    data = makeTeamJson(rows)
+    return data
+
+
+def makeTeamJson(teamData):
+    data = {}
+    roster = {}
+    for i, row in zip(range(1, len(teamData) + 1), teamData):
+        roster[str(i)] = makePlayerJson(row)
+    data["roster"] = roster
+    return data
+
+
+def makePlayerJson(playerData):
+    data = {}
+    for key, value in zip(col_headers, playerData):
+        data[key] = value
+    return data
 
 
 if __name__ == '__main__':
@@ -61,14 +97,14 @@ if __name__ == '__main__':
     conn.execute("ATTACH DATABASE 'WorldCup.db' AS MainDB")
     print("Attached MainDB")
 
+    data = fetchData(conn)
+    print("Data fetched")
+
     outputFileName = os.path.splitext(file)[0] + "_Summary.txt"
     print("Output file: {0}".format(outputFileName))
 
     with open(outputFileName, "w+", 1) as outputFile:
-        writeTeamInfo(conn, outputFile, "Home")
-        outputFile.write('\n')
-        writeTeamInfo(conn, outputFile, "Away")
-        outputFile.write('\n')
+        outputFile.write(json.dumps(data))
         print("Operation done successfully")
 
     conn.close()
